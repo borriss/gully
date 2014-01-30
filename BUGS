@@ -1,0 +1,225 @@
+# $Id: BUGS,v 1.31 2007-01-12 21:06:22 martin Exp $ 
+
+Gullydeckel2 Bug List:
+
+2.15pl6: If Gully fails low, it reverts to the 'saved move' (move that
+failed low) if time runs out during re-search. That is fine. However,
+I am sure not whether it works well if Gully transposes from ponder to
+search. Analysis has strange output then (shows really bad scores if
+we re-search with open window.)  Move ordering is the way to go.
+
+2.15pl3:
+	sz.fen: Mate in 5 Problem - Gully took 13(!) plies
+to find the mate, but reverted back to a mate in 6 and a
+mate in 7 later on. Hashtables and null move switched off.
+fen:  8/1K1R4/1p6/1N6/kPB5/P7/3P4/8 w - - 0 0; bm Bd5!;
+	sz1.fen: null move caused the mate to be hidden.
+	Check the test log - the mate pv is always the last 
+	line seen at this depth (search control). Revisit when
+	search is understood and documented.	
+
+2.15pl1:
+Revisit Ra7 effect - put this or similar position in test position.
+
+2.14pl5: parser does not tolerate misformatted epd-testsuites very well.
+
+2.14pl2: Reimplementation of the NEW command broke compatibility with
+	Xboard 3.5: Gully does not detect that it is in xboard mode:
+	time gets not updated if it is Gullys move and Xboard hangs
+	after sending Gully a "post" command. (Workaround is to use
+	-x switch to force xboard mode.)
+
+2.14.pl0:
+	Review hash tables: Is there any aging algorithm implemented?
+	In other words: Are deep scores from old plies sitting there
+	till the end of the game?
+
+2.13.pl7:
+	if we got the NEW command while searching or
+      	looking up book up moves, we
+	must not execute our search result.
+ 	return and let normal input handling take of
+	handling the reset. (we don't check input while
+	browsing the book, but anyway).
+	Unfortunately, Gully does not check for input
+	when it is SEARCHING. (only while PONDERING).
+	So, a reset problem with xboard persists:
+	If Gully is reset via NEW, it may emit a move
+	valid in the start position which will be 
+	executed by XBoard. Revisit this when "move now"
+	is implemented.
+
+2.13pl3:
+	Reported by Dann Corbit:
+	a) It is safe to stop the search if a mate in n is found and
+	we have searched 2*n plies. It does not get any better.
+
+	b) We should never fail low in the next ply after we found a mate.
+	(due to null move, see wac.001, IMCP.11 for 2.15pl1)
+
+2.11:
+* new move ordering strategy: killers might overlap with captures,
+  in which case they dont get the correct bonus (check order.c 
+  and search.c)
+	??
+
+2.9:
+* For Maresch test suite:
+  omitting semicolon at end of epd record lead to crashes
+  also, omitting a move after bm tag resulted in bugs
+
+	(partially fixed, needs tests)
+
+2.7beta
+* timing: Gully uses systemtime but doesnt realize that in matchmode it gets only half of the processor, so it uses way more time than it should.	
+
+* Gully2 cannot use the plies_since_last_capture_or_pawn_move which is optional in epd record. Possible solution: don't check for move_flags[0].irreversible_cnt > 99, but for > variable (with variable being 99 most of the time)
+
+==========================================================================
+FIXED BUGS:
+
+
+2.15pl8: For Win32 on the dual Xeon: Gully sometimes loses on time in
+fast games ( 2 0 vs GNU). Check time management code. I think this
+fixed in 2.16pl1. (Tests and fixes by Olivier and Andrew)
+
+2.15pl8: set stdin and stdout for Win32 to _IONBUF (_IOLBUF fails at least
+	for stdin).
+
+2.15pl5: eval bug fixed: evaluates 2Q vs Q as -11.xx score (due to wrong
+	 pawn hash initialization for ptable[0]).
+
+2,15pl3: pondering problem (reported by Leo Dijskman): Fixed
+explicitly changing buffering mode for input pipe (from winboard) via
+setvbuf. I guess line-buffered is OK. (2.15pl8: It is not.)
+
+
+2.15pl3: specifying --null on the command line has no effect;
+	phase() always decides itself. FIXED. (phase() keeps
+	initial state in a static variable) 
+
+2.15pl3:
+It was possible to start Gully with --transref 0 and switching hash
+table usage on with 'hash' later on, resulting in a core dump. Fixed.
+
+2.15pl1: book generation (book_up()): Our generated move did not match
+	moves like R1d2, N4f3 and so on. Those move are currently rejected
+	by the book building process.
+	Fixed (parser bug)
+
+
+* when running the starting position, gully has a bad PV:
+ 8.    0.00  7.11    173844    b1c3  b8c6  g1f3  b8c6  c3d5  g8f6
+(Nc6 double)
+
+Fix: cut_pv() if null_move results in alpha < score < beta.
+
+
+* Gully2 doesn't correctly handle fail-low situations. It will "over-react
+* and pass an very bad move back. (just some move it got during the
+* re-search with open window. This move will have a good score (the one from
+* the previous ply)
+
+Fix:
+(by saving last move resulting from last finished search (not aborted)) - see
+iterate.c
+
+
+* after adding pondering (15.3.97) Gully had "illegal move:" statements on GICS xboard (but didnt lose a game due to it???) and had also "hoppla! TT move not found" (with a sane looking move and also at low depth) This is perhaps due to an interface bug and not a search bug.	
+* Interface bug: For some reason Gully did fgets while pondering (a la crafty), but didnt get the move after time, otim.
+
+Fix: Both were seemingly solved when keeping the number of chars actually waiting (pending_chars)
+
+* when using setup, afterwards level, gully2 will still use the constant
+10sec time allocation. Not so when under xboard.
+
+Fix: setup command is different from edit; now it saves the old gameTime
+too.
+
+* segmentation fault when nearing the 50 move limit in KB vs. K (last depth
+was 28), probably due to too deep search.
+
+Fix: repetition_arrays too small (25+MAX_DEPTH/2) is wrong, (50+MAX_DEPTH/2)
+correct. Also History array site is now MAX_SEARCH_DEPTH (e.g. down to to
+ply 70)
+ 
+* see: in W: Pg5,Bh4 B: Pf6,Be7 the bishops are not recognized as indirect 
+	attackers(due to the correct assumption that this is at least a 
+	trade, but this is not enough - in hung piece detection only 
+	winners are looked at)
+
+Fix: In 2.9 - improved implementation of fill_see_array takes care of
+this (also see is more exact overall)
+
+* For Maresch test suite:
+  node counts differ for compilation w/ and w/o debugging support.
+
+Fix: 
+	reset transref and killer table when setting up a new position.
+
+* Gully 2.11
+	would still call pick() in quies, although there is no content 
+	(keys not set by generate_captures anymore)
+	FIXED.
+
+
+2.12pl3
+	Adding endgame evaluation and king (+ to a minor extend) 
+	rook eval) makes all the difference in the tests. There are no
+	bugs relating to the extended material count. But the king eval
+	has a surprisingly bad influence in (almost?) all test suites.
+
+Going from evaluate.c 1.17 to 1.18 caused a drastic drop *not* in nps,
+	but in plies searched. E.g. bk.08 (9 complete in 30s) loses 2 plies! 
+	Also bk.9 (6), bk.10 (6), bk.11 (6), bk.12(6) - very quiet pos with
+	one only move Bf5) and many others are plain slow.
+
+see "tkdiff -r 1.17 -r 1.18 evaluate.c"
+	****************
+
+Explanation:
+	The reason was introducing king safety. Introducing the splitted 
+	material score causes about 8-9% overhead in nps (node counts being
+	equal).
+
+2.13pl2:
+	attacks.c:fill_see_array()
+	PieceBits[GET_PIECE(*BOARD[src])]) did lookups
+	beyond the array bounds (found by D. Corbit)
+
+	FIXED:
+	(forgot occurence of pawns, it is now tested for pawns 
+	explicitly. M. Borriss, 29.4.2000)
+
+2.13pl0:
+	book.c borrowed from crafty.
+	it needs a function which gets a text string and reads
+	all kinds of input (abbreviated *plus* 0-0 O-O etc.) 
+	DONE.
+
+2.13pl5:
+	did not check return value of fgets in input.c
+	broke in fast games because of unhandled error condition:
+	interrupted system call (yes, it really happens (xboard
+	did send SIGINT while gully2 did a read(stdin) via fgets.
+	FIXED. (in 2.13pl6)
+
+2.13pl3:
+	"book" command if there was no book given:
+	
+	white:book
+	Book off. Using: , size 0 (about -8192 positions)
+	(still in 2.13pl4: book on should be rejected if we
+	dont have a book file; or it should be loaded then)
+	FIXED. (in 2.13pl4)
+
+2.13pl3:
+	"new" command does not reset the game; instead it 
+	just configures gully for working with xboard.
+	FIXED (in 2.13pl5)
+	
+2.8 and earlier:
+*MAX_MOVE_ARRAY 1000 was not sufficient in some cases (one yazdac position this limit was overstepped at about 10 min on PPro in ply 27)
+It is 1800 now which may also not be sufficient anymore. Try to find out maximum use in test suite.
+
+

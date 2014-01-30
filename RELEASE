@@ -1,0 +1,61 @@
+/* $Id: RELEASE,v 1.8 2003-06-01 16:59:27 martin Exp $ */
+
+Gullydeckel2 chess playing program
+
+DESCRIPTION 
+
+Gullydeckel2 is a chess playing program. I personally use it under 
+Windows 2000 and Debian Linux 2.2. It is mostly used  together with
+a graphical chess board, as a "winboard engine" or "xboard engine". 
+
+You can use it on the command line as well (for solving batches of 
+test positions or the like). Type 'gully2 -h' for command line options
+or type 'help' interactively at Gully's prompt.
+
+TIMESCALE
+
+A first version -- Gullydeckel 1 -- has been written in 1994/1995. 
+Gullydeckel 2 (this program) has been done mainly in 1996, but I 
+recently (in 2000) have picked it up again. In 2002/2003,
+I worked on support of Win32 plattforms, added support for analysis,
+ponder, winboard protocol version 2 and chessbase mode etc. 
+
+AUTHOR
+
+Gullydeckel has been written by myself, Martin Borriss. Since I have
+been an novice chess programmer at the time, many a hint from the
+chess programmer community (most notably Bruce Moreland and Robert
+Hyatt) has been extremely helpful.  
+
+LICENSING 
+
+Gullydeckel has been put under the GNU General Public License. See the
+file named "GPL".  It is available for download via the WWW. You are
+welcome to send me patches, ideas etc.
+
+CONTACT
+
+mail: gully@borriss.com
+web page: gully.borriss.com
+ 
+SUPPORTED PLATFORMS
+
+1. Linux
+
+Linux has been the primary platform. I recommend using XBoard 4.2.x as
+graphical interface. Nowadays, I run the test suites under Linux. If
+you like to do that as well I will be very happy to provide you test
+scripts, earlier results etc.
+
+Linux chess database "scid": Todo. I would like to have feedback whether
+there is a real need.
+
+2. Windows (Win95, 98, ME, Win2000, XP)
+
+People use Winboard as GUI, other GUIs have been reported to
+work. I used it with Fritz8 with the UCI to Winboard adapter as well.
+
+Almost all tournaments are played with the windows version.
+
+Feedback (in particular bug reports) is always appreciated, see also 
+the gully.log logfile.

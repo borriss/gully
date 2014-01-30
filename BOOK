@@ -1,0 +1,22 @@
+# $Id: BOOK,v 1.2 2003-03-02 13:52:25 martin Exp $
+
+How to build to your own opening book with Gullydeckel
+
+The code to build a book is derived from Bob Hyatt's Crafty program. 
+This means two things:
+* It works quite good.
+* It is particulary easy to use if you know how to build a book with crafty.
+
+Here are the steps:
+(1) You need a collection of games in PGN (assume it is named
+"mygames.pgn"). They should not have comments in it, the parser skips
+the remainder of a game then.
+(2) Rename book.bin, it will get overwritten.
+(2) Start gully2 on a command line. 
+(3) At the prompt, type "book admin"
+(4) The program again waits for input, type "create mygames.pgn"
+(5) Now, Gully will create a new book.bin file from your file "mygames.pgn". Done.
+
+There a lots of more advanced options to customize the book. Look into
+book.c for details. I added the option to define a certain player
+whose moves the program tries to imitate.

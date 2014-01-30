@@ -1,0 +1,127 @@
+# $Id: TODO,v 1.9 2003-06-01 16:59:28 martin Exp $ 
+#
+# This file outlines which features are thought to be 
+# useful in future releases.
+#
+# This is *not* a collection of simple bugs, think
+# of it as "strategic" aims. I am trying to group
+# these aims in a meaningful way, see below. 
+#
+# M. Borriss, April 2000 - June 2003.
+
+Section 1 - Evaluation issues
+=============================
+
+- king eval
+
+- penalty for Kg1, Rh1 formation
+
+- see:
+	is probably slow (fill_see_array)
+	perhaps it is better to check whether it is a winner or trade
+	before calling see.	
+
+- do static pre-evaluation. Use pawn formation info to modify
+  static bonus values (move ordering, outposts, king safety, minor
+pieces boni). Decide what to do statically (before searching) or "live"
+within the pawn hash information.
+
+- fine-tuning for material evaluation (award bonus for team such as Q+N,
+	award defensive bonus for fianchettoed bishop or to knights.)
+
+- penalty for blocking e2/d2/d7/e7 pawns in opening
+
+- king proximity to (passed) pawns in endgames
+
+- use nalimov table bases
+
+Section 2 - Search issues
+=========================
+
+- try re-capture extension during main search 
+
+-general search :
+	update of alpha/beta bounds is risky 
+		(messes PV up, conflicts with nullmove)
+	currently, many PV_NODES are stored as fail_lows, since
+	value == alpha (alpha is updated with value)
+	solution: having a "best" value which slides in the ab 
+	window and is a paramater for deeper searches.
+	Then, fail-low variantes and "best" updates through transref
+	table should be tried again!
+
+	do I handle fail-low /fail-high (and vice versa!) correctly in
+	iterate?
+
+-move ordering:
+	- assign keys (for captures; for moves towards the center;
+			for checking moves; pawn advances in the ending)
+		a) after we tried transposition table, null, killers (incl PV)
+		b) in move generation.
+	[ I believe this one is at least partially done in 2.13]
+	- pick() currently just scans all the candidate moves and
+	  returns the index of the best candidate. The first plies
+	  should be treated better (e.g., all moves should be ordered;
+	  fine-grained ordering.) 20.4.00
+	
+	- only *one* function for assigning keys is required.
+	( bonus for transref, killer, history )
+
+	- special treatment of first ply.
+	- keeping the PV in the killer table still seems to make sense.
+
+	- ordering candidates make probably sense for the first 6 
+	candidates or so; take the rest in random order.
+
+	-for capture ordering see should be used _in normal search_ !
+
+	-killers:
+		updating killers and having them searched before captures
+		brings a significant speedup.
+		
+		!allow disabling killers as soon as Pv is gotten by TTable.
+
+		Normally, killers are searched _after_ captures!
+
+	-root move ordering
+
+-quies percentage too high in general (80-90%!!) I believe it should
+	be brough down to 70%, ideally. 
+
+Section 3 - user interface, test features and portability issues
+================================================================
+
+Test issues:
+	- verify_fen function to check whether setup attempts to setup
+		a valid position
+	- PV line is never fully deleted, so e.g. in test positions we
+	     	start with the old PV. This is not a problem, but looks 
+		ugly. Re-Investigate this when the PV comes (indirectly) 
+		from TTable.
+
+User interface:
+	Support option --verbose=VERBOSITY_LEVEL (e.g., suppress
+	(some) thinking output or stats when playing.
+
+	(Jan 01) level command on command line
+
+Style issues
+	- check POSIXLY_CORRECT environment variable (suppress extensions
+		then)
+	
+	- split evaluation code into separate files (its likely to
+	  grow a lot), e.g., ending.c ; pawnless.c ; evaluate.c (middle-
+	 game); opening.c
+
+	- makefile: make debug and profile separate targets; e.g. allow
+	  building different version /wo changing the makefile
+	- use autoconf
+
+Section 4 - Planned experiments
+===============================
+
+Check whether Gully's node count is off by a significant factor in
+comparision with Crafty or Phalanx for equivalent depths.
+
+
+
